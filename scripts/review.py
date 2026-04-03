@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-"""Review tracks in the not-sure list.
+"""Interactive review of discovered tracks.
 
-For each track, opens it in Spotify and asks: whitelist, blacklist, or skip.
-Approved tracks go to whitelist.json, rejected to blacklist.json.
+For each track in not_sure.json:
+- Listen on Spotify
+- Assign to a playlist (whitelist) or reject (blacklist)
 
 Usage: python scripts/review.py
 """
@@ -10,21 +11,30 @@ import json
 import subprocess
 import sys
 
+PLAYLIST_KEYS = {
+    "d": "daytime",
+    "e": "evening",
+    "f": "folk",
+    "p": "party",
+    "w": "waltz",
+    "r": "rave",
+}
 
-def load_json(path):
+
+def load(path):
     with open(path, "r", encoding="utf-8") as f:
         return json.load(f)
 
 
-def save_json(path, data):
+def save(path, data):
     with open(path, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
 
 
 def main():
-    not_sure = load_json("data/not_sure.json")
-    whitelist = load_json("data/whitelist.json")
-    blacklist = load_json("data/blacklist.json")
+    not_sure = load("data/not_sure.json")
+    whitelist = load("data/whitelist.json")
+    blacklist = load("data/blacklist.json")
 
     tracks = list(not_sure["tracks"].items())
     if not tracks:
@@ -32,50 +42,61 @@ def main():
         return
 
     print(f"\n{len(tracks)} tracks to review.\n")
-    print("Commands: [w] whitelist  [b] blacklist  [s] skip  [o] open in Spotify  [q] quit\n")
+    print("Commands:")
+    print("  d=daytime  e=evening  f=folk  p=party  w=waltz  r=rave")
+    print("  b=blacklist  s=skip  o=open in Spotify  q=quit\n")
 
     reviewed = 0
     for track_id, info in tracks:
-        print(f"--- {info['artists']}")
-        print(f"    Reason: {info['reason']}")
-        print(f"    URI: {info['uri']}")
+        artist = info.get("artist", "?")
+        name = info.get("name", "?")
+        source = info.get("source", "?")
+        lang = info.get("language_check", "?")
+
+        print(f"--- {artist} — {name}")
+        print(f"    Source: {source} | Language: {lang}")
 
         while True:
-            choice = input("    [w/b/s/o/q]: ").strip().lower()
+            choice = input("    > ").strip().lower()
 
             if choice == "o":
-                # Open in Spotify
                 url = f"https://open.spotify.com/track/{track_id}"
                 subprocess.run(["open", url], check=False)
                 continue
-            elif choice == "w":
-                whitelist["tracks"][track_id] = info
-                del not_sure["tracks"][track_id]
-                print("    → Whitelisted")
-                reviewed += 1
-                break
+            elif choice == "q":
+                save("data/not_sure.json", not_sure)
+                save("data/whitelist.json", whitelist)
+                save("data/blacklist.json", blacklist)
+                print(f"\nSaved. Reviewed {reviewed} tracks.")
+                return
             elif choice == "b":
-                blacklist["tracks"][track_id] = info
+                blacklist["tracks"][track_id] = {}
                 del not_sure["tracks"][track_id]
-                print("    → Blacklisted")
+                print(f"    → Blacklisted")
                 reviewed += 1
                 break
             elif choice == "s":
-                print("    → Skipped")
+                print(f"    → Skipped")
                 break
-            elif choice == "q":
-                print(f"\nReviewed {reviewed} tracks.")
-                save_json("data/not_sure.json", not_sure)
-                save_json("data/whitelist.json", whitelist)
-                save_json("data/blacklist.json", blacklist)
-                return
+            elif choice in PLAYLIST_KEYS:
+                playlist = PLAYLIST_KEYS[choice]
+                whitelist["tracks"][track_id] = {
+                    "name": name,
+                    "artist": artist,
+                    "uri": info.get("uri", ""),
+                    "playlist": playlist,
+                }
+                del not_sure["tracks"][track_id]
+                print(f"    → {playlist}")
+                reviewed += 1
+                break
             else:
-                print("    Invalid choice. Use w/b/s/o/q")
+                print("    Invalid. Use d/e/f/p/w/r/b/s/o/q")
 
+    save("data/not_sure.json", not_sure)
+    save("data/whitelist.json", whitelist)
+    save("data/blacklist.json", blacklist)
     print(f"\nDone! Reviewed {reviewed} tracks.")
-    save_json("data/not_sure.json", not_sure)
-    save_json("data/whitelist.json", whitelist)
-    save_json("data/blacklist.json", blacklist)
 
 
 if __name__ == "__main__":
