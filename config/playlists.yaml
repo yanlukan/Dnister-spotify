@@ -20,9 +20,23 @@ playlists:
   - name: "Folk"
     spotify_id: "5VcKxY0sYxapLRW1DSUvQr"
     description: "Traditional Ukrainian folk & bandura classics"
+    dedicated: true
     genres:
       - "ukrainian folk"
       - "ukrainian traditional"
+    search_queries:
+      - "українська народна музика"
+      - "ukrainian folk music"
+      - "бандура україна"
+      - "українські народні пісні"
+      - "ukrainian traditional songs"
+      - "козацькі пісні"
+    seed_artists:
+      - "Dakha Brakha"
+      - "Наталя Фаліон"
+      - "Тріо Маренич"
+      - "Ніна Матвієнко"
+      - "Марія Бурмака"
     max_tracks: 50
 
   - name: "Party"
