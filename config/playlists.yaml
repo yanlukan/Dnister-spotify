@@ -42,6 +42,15 @@ playlists:
       - "ukrainian traditional"
     max_tracks: 50
 
+  - name: "Rave"
+    spotify_id: "5MwjTAKFh33Qhx8t5JZ2h2"
+    description: "Ukrainian rave and electronic bangers"
+    genres:
+      - "ukrainian electronic"
+      - "ukrainian edm"
+      - "ukrainian techno"
+    max_tracks: 50
+
 # Source playlists to pull tracks from (Spotify playlist IDs)
 source_playlists: []
 
@@ -53,6 +62,9 @@ search_queries:
   - "ukraine hits"
   - "український вальс"
   - "ukrainian waltz"
+  - "ukrainian rave"
+  - "ukrainian techno"
+  - "українська електронна музика"
 
 # Seed artists (searched by name via Spotify search API)
 seed_artists:
