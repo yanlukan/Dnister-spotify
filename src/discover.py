@@ -7,6 +7,9 @@ import logging
 import os
 import sys
 
+from dotenv import load_dotenv
+load_dotenv()
+
 import yaml
 
 from src.scrapers.hitfm import scrape_hitfm
@@ -71,9 +74,15 @@ def main():
     rejected_audio = 0
     not_on_spotify = 0
 
-    for song in unique_songs:
+    import time
+    total = len(unique_songs)
+
+    for i, song in enumerate(unique_songs):
         name = song["name"]
         artist = song["artist"]
+
+        if (i + 1) % 10 == 0:
+            logger.info(f"Progress: {i + 1}/{total}")
 
         # 4. Text language check (fast pre-filter)
         text = f"{name} {artist}"
@@ -83,23 +92,29 @@ def main():
             rejected_text += 1
             continue
 
-        # 5. Find on Spotify
+        # 5. Find on Spotify (with rate limit delay)
+        time.sleep(0.5)
         track = sp.search_track(name, artist)
         if not track:
             not_on_spotify += 1
             continue
 
-        # 6. Audio language check
-        preview_url = track.get("preview_url")
-        audio_result = check_audio_language(preview_url)
+        # 6. Audio language check (skip if SKIP_AUDIO_CHECK is set — slow on first run)
+        audio_lang = "skipped"
+        audio_conf = 0.0
+        if not os.environ.get("SKIP_AUDIO_CHECK"):
+            preview_url = track.get("preview_url")
+            audio_result = check_audio_language(preview_url)
+            audio_lang = audio_result["language"]
+            audio_conf = audio_result["confidence"]
 
-        if audio_result["language"] == "rus" and audio_result["confidence"] > 0.7:
-            logger.info(f"Rejected (audio=rus): {artist} — {name}")
-            rejected_audio += 1
-            continue
+            if audio_lang == "rus" and audio_conf > 0.7:
+                logger.info(f"Rejected (audio=rus): {artist} — {name}")
+                rejected_audio += 1
+                continue
 
         # 7. Build track info and classify
-        lang_info = f"text={text_result['language']}({text_result['confidence']:.2f}) audio={audio_result['language']}({audio_result['confidence']:.2f})"
+        lang_info = f"text={text_result['language']}({text_result['confidence']:.2f}) audio={audio_lang}({audio_conf:.2f})"
         track_info = {
             "id": track["id"],
             "name": track["name"],

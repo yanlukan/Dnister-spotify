@@ -6,6 +6,9 @@ Usage: python -m src.update_playlists
 import logging
 import sys
 
+from dotenv import load_dotenv
+load_dotenv()
+
 import yaml
 
 from src.spotify_client import SpotifyClient
