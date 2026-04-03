@@ -21,21 +21,33 @@ class SongCollector:
 
     def collect_from_genre(self, genre: str) -> list[dict]:
         """Search for tracks by genre."""
-        tracks = self.sp.search_tracks(f"genre:{genre}", limit=50)
-        logger.info(f"Collected {len(tracks)} tracks for genre '{genre}'")
-        return tracks
+        try:
+            tracks = self.sp.search_tracks(f"genre:{genre}")
+            logger.info(f"Collected {len(tracks)} tracks for genre '{genre}'")
+            return tracks
+        except Exception as e:
+            logger.warning(f"Genre search failed for '{genre}': {e}")
+            return []
 
     def collect_from_search(self, query: str) -> list[dict]:
         """Search for tracks by free-text query."""
-        tracks = self.sp.search_tracks(query, limit=50)
-        logger.info(f"Collected {len(tracks)} tracks for query '{query}'")
-        return tracks
+        try:
+            tracks = self.sp.search_tracks(query)
+            logger.info(f"Collected {len(tracks)} tracks for query '{query}'")
+            return tracks
+        except Exception as e:
+            logger.warning(f"Search failed for '{query}': {e}")
+            return []
 
     def collect_from_artist(self, artist_id: str) -> list[dict]:
         """Get top tracks for an artist."""
-        tracks = self.sp.get_artist_top_tracks(artist_id)
-        logger.info(f"Collected {len(tracks)} tracks from artist {artist_id}")
-        return tracks
+        try:
+            tracks = self.sp.get_artist_top_tracks(artist_id)
+            logger.info(f"Collected {len(tracks)} tracks from artist {artist_id}")
+            return tracks
+        except Exception as e:
+            logger.warning(f"Artist lookup failed for {artist_id}: {e}")
+            return []
 
     def collect_all(self, config: dict) -> list[dict]:
         """Collect tracks from all configured sources and deduplicate.

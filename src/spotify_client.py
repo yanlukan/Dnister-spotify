@@ -47,9 +47,9 @@ class SpotifyClient:
             results = self.sp.next(results) if results["next"] else None
         return tracks
 
-    def search_tracks(self, query: str, limit: int = 50) -> list[dict]:
+    def search_tracks(self, query: str, limit: int = 20) -> list[dict]:
         """Search for tracks by query string."""
-        results = self.sp.search(q=query, type="track", limit=limit, market="UA")
+        results = self.sp.search(q=query, type="track", limit=min(limit, 50), market="UA")
         return results["tracks"]["items"]
 
     def get_artist(self, artist_id: str) -> dict:
