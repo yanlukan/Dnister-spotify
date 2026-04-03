@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 class SpotifyClient:
     """Wrapper around Spotipy for authenticated Spotify API access."""
 
-    SCOPES = "playlist-modify-public playlist-modify-private"
+    SCOPES = "playlist-read-private playlist-read-collaborative playlist-modify-public playlist-modify-private"
 
     def __init__(self):
         client_id = os.environ.get("SPOTIFY_CLIENT_ID")

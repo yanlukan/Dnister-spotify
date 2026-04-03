@@ -15,7 +15,7 @@ import spotipy
 from spotipy.oauth2 import SpotifyOAuth
 
 REDIRECT_URI = "http://127.0.0.1:3000/callback"
-SCOPES = "playlist-modify-public playlist-modify-private"
+SCOPES = "playlist-read-private playlist-read-collaborative playlist-modify-public playlist-modify-private"
 
 
 def main():
