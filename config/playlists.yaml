@@ -1,45 +1,48 @@
 playlists:
-  - name: "Dnister Daytime"
+  - name: "Daytime"
+    spotify_id: "2dtGpG8ColpwGLjAIh3h2y"
     description: "Chill Ukrainian sounds for a relaxed lunch"
     genres:
       - "ukrainian indie"
       - "ukrainian acoustic"
       - "ukrainian jazz"
-    energy_min: 0.0
-    energy_max: 0.4
     max_tracks: 50
 
-  - name: "Dnister Evening"
+  - name: "Evening"
+    spotify_id: "2M199fyV4J4gT1MfusqJxJ"
     description: "Modern Ukrainian hits for dinner"
     genres:
       - "ukrainian pop"
       - "ukrainian r&b"
       - "ukrainian indie"
-    energy_min: 0.4
-    energy_max: 0.65
     max_tracks: 50
 
-  - name: "Dnister Folk"
+  - name: "Folk"
+    spotify_id: "5VcKxY0sYxapLRW1DSUvQr"
     description: "Traditional Ukrainian folk & bandura classics"
     genres:
       - "ukrainian folk"
       - "ukrainian traditional"
-    energy_min: 0.2
-    energy_max: 0.55
     max_tracks: 50
 
-  - name: "Dnister Party"
+  - name: "Party"
+    spotify_id: "4kn274GiOqPmh6pgwG1nPZ"
     description: "Upbeat Ukrainian bangers for weekends"
     genres:
       - "ukrainian pop"
       - "ukrainian hip hop"
       - "ukrainian rock"
-    energy_min: 0.65
-    energy_max: 1.0
+    max_tracks: 50
+
+  - name: "Waltz"
+    spotify_id: "5AsuhvTJGEZSNfLi89M3pF"
+    description: "Beautiful Ukrainian waltzes and 3/4 time signatures"
+    genres:
+      - "ukrainian folk"
+      - "ukrainian traditional"
     max_tracks: 50
 
 # Source playlists to pull tracks from (Spotify playlist IDs)
-# Note: Spotify editorial playlists (Top 50 etc) may be inaccessible in dev mode
 source_playlists: []
 
 # Additional search queries beyond genre searches (searched in UA market)
@@ -48,21 +51,28 @@ search_queries:
   - "україна хіти 2025"
   - "ukrainian music 2025"
   - "ukraine hits"
+  - "український вальс"
+  - "ukrainian waltz"
 
-# Seed artists (Spotify artist IDs) — known Ukrainian artists
+# Seed artists (searched by name via Spotify search API)
 seed_artists:
-  - "7sfl4Xt5KmfyDs2T3SVSMK"  # KAZKA
-  - "0snMFGHSiNMI65ZuLuqP3Z"  # Jerry Heil
-  - "6dPCkJ6cFn0IKGaTHUqJqh"  # alyona alyona
-  - "5Q81rlcTFh3k6DQJXPdsot"  # Kalush Orchestra
-  - "3OsRAKCzk0zzPNdUzjMGqF"  # MÉLOVIN
-  - "4WzDnJPLNUayGhdznkuaix"  # Jamala
-  - "1pBLC0qVIN5KMQEG4FCq9F"  # ONUKA
-  - "2FLCITnsp7ROhHGiR2jqpR"  # Okean Elzy
-  - "1HlBdsmRvZIuzGejT2pRdi"  # Tina Karol
-  - "7vFQDWmaxJEPSrmXfBqDaA"  # DOROFEEVA
-  - "3JiAtXVLPcTBy0WY4980eS"  # Pianoboy
-  - "6msYMVOkuWiOKYyVJfLb4b"  # Vivienne Mort
-  - "3mHFdGCR4ksMDIuFBmDqpd"  # Один в каное
-  - "0L8ExT028jH3ddEcZwqJJ5"  # Skofka
-  - "5Pwc4xIPtQLFEnJriah9YJ"  # NK (Nastya Kamenskykh)
+  - "KAZKA"
+  - "Jerry Heil"
+  - "alyona alyona"
+  - "Kalush Orchestra"
+  - "MÉLOVIN"
+  - "Jamala"
+  - "ONUKA"
+  - "Okean Elzy"
+  - "Tina Karol"
+  - "DOROFEEVA"
+  - "Pianoboy"
+  - "Vivienne Mort"
+  - "Один в каное"
+  - "Skofka"
+  - "NK Nastya Kamenskykh"
+  - "Арсен Мірзоян"
+  - "Бумбокс"
+  - "Dakha Brakha"
+  - "Go_A"
+  - "Антитіла"

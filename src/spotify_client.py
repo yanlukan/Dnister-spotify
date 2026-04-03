@@ -47,9 +47,9 @@ class SpotifyClient:
             results = self.sp.next(results) if results["next"] else None
         return tracks
 
-    def search_tracks(self, query: str, limit: int = 20) -> list[dict]:
-        """Search for tracks by query string."""
-        results = self.sp.search(q=query, type="track", limit=min(limit, 50), market="UA")
+    def search_tracks(self, query: str, limit: int = 10) -> list[dict]:
+        """Search for tracks by query string. Dev mode caps limit at 10."""
+        results = self.sp.search(q=query, type="track", limit=min(limit, 10), market="UA")
         return results["tracks"]["items"]
 
     def get_artist(self, artist_id: str) -> dict:
@@ -71,13 +71,42 @@ class SpotifyClient:
         return self.sp.audio_features(track_ids)
 
     def replace_playlist_tracks(self, playlist_id: str, track_uris: list[str]) -> None:
-        """Replace all tracks in a playlist."""
-        # Spotify API allows max 100 tracks per request
-        self.sp.playlist_replace_items(playlist_id, track_uris[:100])
-        # Add remaining tracks in batches
-        for i in range(100, len(track_uris), 100):
-            self.sp.playlist_add_items(playlist_id, track_uris[i : i + 100])
+        """Replace all tracks in a playlist using the non-deprecated /items endpoint."""
+        import requests
+
+        # Clear playlist first
+        self._api_put(f"playlists/{playlist_id}/items", {"uris": []})
+
+        # Add tracks in batches of 100
+        for i in range(0, len(track_uris), 100):
+            batch = track_uris[i : i + 100]
+            self._api_post(f"playlists/{playlist_id}/items", {"uris": batch})
+
         logger.info(f"Replaced playlist {playlist_id} with {len(track_uris)} tracks")
+
+    def _api_post(self, endpoint: str, data: dict) -> dict:
+        """Make a POST request to the Spotify API."""
+        import requests
+        token = self.sp.auth_manager.get_access_token(as_dict=False)
+        resp = requests.post(
+            f"https://api.spotify.com/v1/{endpoint}",
+            json=data,
+            headers={"Authorization": f"Bearer {token}"},
+        )
+        resp.raise_for_status()
+        return resp.json() if resp.content else {}
+
+    def _api_put(self, endpoint: str, data: dict) -> dict:
+        """Make a PUT request to the Spotify API."""
+        import requests
+        token = self.sp.auth_manager.get_access_token(as_dict=False)
+        resp = requests.put(
+            f"https://api.spotify.com/v1/{endpoint}",
+            json=data,
+            headers={"Authorization": f"Bearer {token}"},
+        )
+        resp.raise_for_status()
+        return resp.json() if resp.content else {}
 
     def create_playlist(self, user_id: str, name: str, description: str) -> str:
         """Create a new playlist and return its ID."""

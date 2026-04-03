@@ -32,17 +32,6 @@ class PlaylistManager:
         self.builder = PlaylistBuilder(self.sp_client)
         self.user_id = self.sp_client.get_current_user_id()
 
-    def _get_or_create_playlist(self, name: str, description: str) -> str:
-        """Find an existing playlist by name or create a new one. Returns playlist ID."""
-        playlists = self.sp_client.get_user_playlists()
-        for pl in playlists:
-            if pl["name"] == name and pl["owner"]["id"] == self.user_id:
-                logger.info(f"Found existing playlist '{name}' ({pl['id']})")
-                return pl["id"]
-
-        playlist_id = self.sp_client.create_playlist(self.user_id, name, description)
-        return playlist_id
-
     def run(self) -> None:
         """Execute the full pipeline: collect -> filter -> assign -> update."""
         playlist_configs = self.config["playlists"]
@@ -71,16 +60,14 @@ class PlaylistManager:
             f"After filtering: {len(allowed_tracks)} allowed, {len(excluded)} excluded"
         )
 
-        # 4. Assign tracks to playlists by energy
+        # 4. Assign tracks to playlists
         assignments = self.builder.assign_tracks(allowed_tracks, playlist_configs)
 
-        # 5. Update each playlist on Spotify
+        # 5. Update each playlist on Spotify using hardcoded spotify_id
         for cfg in playlist_configs:
             name = cfg["name"]
-            description = cfg["description"]
+            playlist_id = cfg["spotify_id"]
             tracks = assignments.get(name, [])
-
-            playlist_id = self._get_or_create_playlist(name, description)
             track_uris = [t["uri"] for t in tracks]
 
             if track_uris:

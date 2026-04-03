@@ -46,12 +46,12 @@ def test_collect_from_genre_search(collector, mock_spotify_client):
 
 
 def test_collect_from_artist(collector, mock_spotify_client):
-    mock_spotify_client.get_artist_top_tracks.return_value = [
+    mock_spotify_client.search_tracks.return_value = [
         _make_track("t1"),
         _make_track("t2"),
         _make_track("t3"),
     ]
-    tracks = collector.collect_from_artist("artist_abc")
+    tracks = collector.collect_from_artist("KAZKA")
     assert len(tracks) == 3
 
 
@@ -60,8 +60,6 @@ def test_collect_all_deduplicates(collector, mock_spotify_client):
     same_track = _make_track("t1", "Same Song")
     mock_spotify_client.get_playlist_tracks.return_value = [same_track]
     mock_spotify_client.search_tracks.return_value = [same_track]
-    mock_spotify_client.get_artist_top_tracks.return_value = []
-
     config = {
         "source_playlists": ["playlist_1"],
         "genres": ["ukrainian pop"],
@@ -73,13 +71,16 @@ def test_collect_all_deduplicates(collector, mock_spotify_client):
 
 def test_collect_all_combines_sources(collector, mock_spotify_client):
     mock_spotify_client.get_playlist_tracks.return_value = [_make_track("t1")]
-    mock_spotify_client.search_tracks.return_value = [_make_track("t2")]
-    mock_spotify_client.get_artist_top_tracks.return_value = [_make_track("t3")]
+    # search_tracks is called for genres and artists; return different tracks each call
+    mock_spotify_client.search_tracks.side_effect = [
+        [_make_track("t2")],  # genre search
+        [_make_track("t3")],  # artist search
+    ]
 
     config = {
         "source_playlists": ["playlist_1"],
         "genres": ["ukrainian pop"],
-        "seed_artists": ["artist_1"],
+        "seed_artists": ["KAZKA"],
     }
     tracks = collector.collect_all(config)
     assert len(tracks) == 3

@@ -39,14 +39,14 @@ class SongCollector:
             logger.warning(f"Search failed for '{query}': {e}")
             return []
 
-    def collect_from_artist(self, artist_id: str) -> list[dict]:
-        """Get top tracks for an artist."""
+    def collect_from_artist(self, artist_name: str) -> list[dict]:
+        """Search for tracks by artist name."""
         try:
-            tracks = self.sp.get_artist_top_tracks(artist_id)
-            logger.info(f"Collected {len(tracks)} tracks from artist {artist_id}")
+            tracks = self.sp.search_tracks(f"artist:{artist_name}")
+            logger.info(f"Collected {len(tracks)} tracks for artist '{artist_name}'")
             return tracks
         except Exception as e:
-            logger.warning(f"Artist lookup failed for {artist_id}: {e}")
+            logger.warning(f"Artist search failed for '{artist_name}': {e}")
             return []
 
     def collect_all(self, config: dict) -> list[dict]:

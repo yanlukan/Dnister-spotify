@@ -40,74 +40,41 @@ def playlist_config():
     ]
 
 
-def test_assigns_tracks_by_energy(mock_spotify_client, playlist_config):
-    tracks = [_make_track("t1"), _make_track("t2"), _make_track("t3")]
-
-    # t1: low energy, t2: high energy, t3: medium (no match for either)
-    mock_spotify_client.get_audio_features.return_value = [
-        {"id": "t1", "energy": 0.2},
-        {"id": "t2", "energy": 0.85},
-        {"id": "t3", "energy": 0.5},
-    ]
+def test_distributes_tracks_across_playlists(mock_spotify_client, playlist_config):
+    tracks = [_make_track(f"t{i}") for i in range(6)]
 
     builder = PlaylistBuilder(mock_spotify_client)
     assignments = builder.assign_tracks(tracks, playlist_config)
 
-    assert "t1" in [t["id"] for t in assignments["Chill"]]
-    assert "t2" in [t["id"] for t in assignments["Party"]]
+    assert len(assignments["Chill"]) == 3
+    assert len(assignments["Party"]) == 3
 
 
 def test_respects_max_tracks(mock_spotify_client, playlist_config):
     tracks = [_make_track(f"t{i}") for i in range(10)]
-    mock_spotify_client.get_audio_features.return_value = [
-        {"id": f"t{i}", "energy": 0.2} for i in range(10)
-    ]
 
     builder = PlaylistBuilder(mock_spotify_client)
     assignments = builder.assign_tracks(tracks, playlist_config)
 
     assert len(assignments["Chill"]) <= 3
+    assert len(assignments["Party"]) <= 3
 
 
-def test_track_assigned_to_best_fit_only(mock_spotify_client):
-    """A track should only appear in one playlist, even if energy overlaps."""
-    config = [
-        {
-            "name": "A",
-            "description": "d",
-            "genres": [],
-            "energy_min": 0.0,
-            "energy_max": 0.5,
-            "max_tracks": 50,
-        },
-        {
-            "name": "B",
-            "description": "d",
-            "genres": [],
-            "energy_min": 0.3,
-            "energy_max": 0.8,
-            "max_tracks": 50,
-        },
-    ]
-    tracks = [_make_track("t1")]
-    mock_spotify_client.get_audio_features.return_value = [
-        {"id": "t1", "energy": 0.4}
-    ]
-
-    builder = PlaylistBuilder(mock_spotify_client)
-    assignments = builder.assign_tracks(tracks, config)
-
-    total = sum(len(v) for v in assignments.values())
-    assert total == 1  # Track appears in exactly one playlist
-
-
-def test_handles_missing_audio_features(mock_spotify_client, playlist_config):
-    """Tracks with no audio features should be skipped."""
-    tracks = [_make_track("t1")]
-    mock_spotify_client.get_audio_features.return_value = [None]
+def test_track_assigned_to_one_playlist_only(mock_spotify_client, playlist_config):
+    tracks = [_make_track(f"t{i}") for i in range(4)]
 
     builder = PlaylistBuilder(mock_spotify_client)
     assignments = builder.assign_tracks(tracks, playlist_config)
 
-    total = sum(len(v) for v in assignments.values())
-    assert total == 0
+    all_ids = []
+    for assigned in assignments.values():
+        all_ids.extend(t["id"] for t in assigned)
+    assert len(all_ids) == len(set(all_ids))
+
+
+def test_handles_empty_tracks(mock_spotify_client, playlist_config):
+    builder = PlaylistBuilder(mock_spotify_client)
+    assignments = builder.assign_tracks([], playlist_config)
+
+    assert len(assignments["Chill"]) == 0
+    assert len(assignments["Party"]) == 0
