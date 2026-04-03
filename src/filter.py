@@ -12,7 +12,10 @@ CYRILLIC_RE = re.compile(r"[\u0400-\u04FF]")
 
 
 class RussianContentFilter:
-    """Three-layer filter to exclude Russian content from track lists."""
+    """Filter to exclude Russian content and non-Ukrainian tracks."""
+
+    # Known Ukrainian artist IDs that should always be allowed
+    _known_ukrainian: set[str] = set()
 
     def __init__(self, blocklist_path: str):
         with open(blocklist_path, "r", encoding="utf-8") as f:
@@ -21,11 +24,43 @@ class RussianContentFilter:
         self._blocked_names: set[str] = {a["name"].lower() for a in data["artists"]}
         logger.info(f"Loaded {len(self._blocked_ids)} blocked artists")
 
+    def _has_cyrillic(self, text: str) -> bool:
+        """Check if text contains Cyrillic characters."""
+        return bool(CYRILLIC_RE.search(text))
+
+    def _looks_ukrainian(self, track: dict) -> bool:
+        """Check if a track has any Ukrainian connection.
+
+        Returns True if the track/artist/album name contains Cyrillic,
+        or if the artist is in our known Ukrainian set.
+        """
+        # Check artist names for Cyrillic
+        for artist in track.get("artists", []):
+            if self._has_cyrillic(artist.get("name", "")):
+                return True
+            if artist["id"] in self._known_ukrainian:
+                return True
+
+        # Check track name for Cyrillic
+        if self._has_cyrillic(track.get("name", "")):
+            return True
+
+        # Check album name for Cyrillic
+        if self._has_cyrillic(track.get("album", {}).get("name", "")):
+            return True
+
+        return False
+
     def is_allowed(self, track: dict) -> tuple[bool, str]:
-        """Check if a track passes all three filter layers.
+        """Check if a track passes all filter layers.
 
         Returns (allowed: bool, reason: str). Reason is empty if allowed.
         """
+        # Layer 0: Must look Ukrainian (has Cyrillic somewhere)
+        if not self._looks_ukrainian(track):
+            artist_names = ", ".join(a["name"] for a in track.get("artists", []))
+            return False, f"Non-Ukrainian: '{track.get('name', '')}' by {artist_names}"
+
         # Layer 1 + 3: Check all artists (primary + featured) against blocklist
         for artist in track.get("artists", []):
             if artist["id"] in self._blocked_ids:
