@@ -41,7 +41,7 @@ def test_collect_from_genre_search(collector, mock_spotify_client):
     tracks = collector.collect_from_genre("ukrainian pop")
     assert len(tracks) == 1
     mock_spotify_client.search_tracks.assert_called_once_with(
-        q="genre:ukrainian pop", limit=50
+        "genre:ukrainian pop", limit=50
     )
 
 

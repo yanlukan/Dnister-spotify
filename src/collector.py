@@ -21,13 +21,13 @@ class SongCollector:
 
     def collect_from_genre(self, genre: str) -> list[dict]:
         """Search for tracks by genre."""
-        tracks = self.sp.search_tracks(q=f"genre:{genre}", limit=50)
+        tracks = self.sp.search_tracks(f"genre:{genre}", limit=50)
         logger.info(f"Collected {len(tracks)} tracks for genre '{genre}'")
         return tracks
 
     def collect_from_search(self, query: str) -> list[dict]:
         """Search for tracks by free-text query."""
-        tracks = self.sp.search_tracks(q=query, limit=50)
+        tracks = self.sp.search_tracks(query, limit=50)
         logger.info(f"Collected {len(tracks)} tracks for query '{query}'")
         return tracks
 
