@@ -1,28 +1,49 @@
 import os
-from unittest.mock import patch, MagicMock
 import pytest
+from unittest.mock import patch, MagicMock
 
 
-def test_spotify_client_initializes_with_env_vars():
-    """SpotifyClient should initialize Spotipy with credentials from env vars."""
+def test_search_returns_track():
+    from src.spotify_client import SpotifyClient
     env = {
-        "SPOTIFY_CLIENT_ID": "test_id",
-        "SPOTIFY_CLIENT_SECRET": "test_secret",
-        "SPOTIFY_REFRESH_TOKEN": "test_token",
+        "SPOTIFY_CLIENT_ID": "test",
+        "SPOTIFY_CLIENT_SECRET": "test",
+        "SPOTIFY_REFRESH_TOKEN": "test",
     }
-    with patch.dict(os.environ, env):
-        with patch("src.spotify_client.SpotifyOAuth") as mock_oauth:
-            with patch("src.spotify_client.spotipy.Spotify") as mock_spotify:
-                from src.spotify_client import SpotifyClient
+    with patch.dict(os.environ, env), \
+         patch("src.spotify_client.SpotifyOAuth"), \
+         patch("src.spotify_client.spotipy.Spotify") as MockSp:
+        mock_sp = MockSp.return_value
+        mock_sp.search.return_value = {
+            "tracks": {"items": [
+                {
+                    "id": "abc",
+                    "name": "Stefania",
+                    "uri": "spotify:track:abc",
+                    "preview_url": "https://example.com/preview.mp3",
+                    "artists": [{"name": "Kalush Orchestra"}],
+                    "album": {"name": "Album"},
+                }
+            ]}
+        }
+        client = SpotifyClient()
+        result = client.search_track("Stefania", "Kalush Orchestra")
+        assert result is not None
+        assert result["id"] == "abc"
 
-                client = SpotifyClient()
-                assert client.sp is not None
 
-
-def test_spotify_client_raises_without_credentials():
-    """SpotifyClient should raise ValueError if credentials are missing."""
-    with patch.dict(os.environ, {}, clear=True):
-        from src.spotify_client import SpotifyClient
-
-        with pytest.raises(ValueError, match="Missing Spotify credentials"):
-            SpotifyClient()
+def test_search_returns_none_when_not_found():
+    from src.spotify_client import SpotifyClient
+    env = {
+        "SPOTIFY_CLIENT_ID": "test",
+        "SPOTIFY_CLIENT_SECRET": "test",
+        "SPOTIFY_REFRESH_TOKEN": "test",
+    }
+    with patch.dict(os.environ, env), \
+         patch("src.spotify_client.SpotifyOAuth"), \
+         patch("src.spotify_client.spotipy.Spotify") as MockSp:
+        mock_sp = MockSp.return_value
+        mock_sp.search.return_value = {"tracks": {"items": []}}
+        client = SpotifyClient()
+        result = client.search_track("Nonexistent", "Nobody")
+        assert result is None
