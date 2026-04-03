@@ -36,6 +36,7 @@ def manager(mock_config):
         mgr = PlaylistManager(
             config_path="config/playlists.yaml",
             blocklist_path="data/russian_artists_blocklist.json",
+            verified_artists_path="data/verified_ukrainian_artists.json",
         )
 
         mgr._mock_collector = MockCollector.return_value

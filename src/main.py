@@ -22,13 +22,14 @@ class PlaylistManager:
         self,
         config_path: str = "config/playlists.yaml",
         blocklist_path: str = "data/russian_artists_blocklist.json",
+        verified_artists_path: str = "data/verified_ukrainian_artists.json",
     ):
         with open(config_path, "r", encoding="utf-8") as f:
             self.config = yaml.safe_load(f)
 
         self.sp_client = SpotifyClient()
         self.collector = SongCollector(self.sp_client)
-        self.content_filter = RussianContentFilter(blocklist_path)
+        self.content_filter = RussianContentFilter(blocklist_path, verified_artists_path)
         self.builder = PlaylistBuilder(self.sp_client)
         self.user_id = self.sp_client.get_current_user_id()
 

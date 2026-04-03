@@ -23,8 +23,17 @@ def blocklist_path(tmp_path):
 
 
 @pytest.fixture
-def filter_instance(blocklist_path):
-    return RussianContentFilter(blocklist_path)
+def verified_artists_path(tmp_path):
+    """Create a temporary verified artists file."""
+    verified = {"artists": ["KAZKA", "Калуш Оркестра"]}
+    path = tmp_path / "verified.json"
+    path.write_text(json.dumps(verified))
+    return str(path)
+
+
+@pytest.fixture
+def filter_instance(blocklist_path, verified_artists_path):
+    return RussianContentFilter(blocklist_path, verified_artists_path)
 
 
 def _make_track(track_name, artist_id, artist_name, album_name=None):
