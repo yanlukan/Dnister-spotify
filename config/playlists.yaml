@@ -2,19 +2,50 @@ playlists:
   - name: "Daytime"
     spotify_id: "2dtGpG8ColpwGLjAIh3h2y"
     description: "Chill Ukrainian sounds for a relaxed lunch"
+    dedicated: true
     genres:
       - "ukrainian indie"
       - "ukrainian acoustic"
       - "ukrainian jazz"
+    search_queries:
+      - "українська спокійна музика"
+      - "ukrainian chill music"
+      - "ukrainian acoustic songs"
+      - "ukrainian lounge music"
+      - "легка українська музика"
+    seed_artists:
+      - "Pianoboy"
+      - "Vivienne Mort"
+      - "Один в каное"
+      - "Jamala"
+      - "Арсен Мірзоян"
+      - "SadSvit"
+      - "Бумбокс"
     max_tracks: 50
 
   - name: "Evening"
     spotify_id: "2M199fyV4J4gT1MfusqJxJ"
     description: "Modern Ukrainian hits for dinner"
+    dedicated: true
     genres:
       - "ukrainian pop"
       - "ukrainian r&b"
       - "ukrainian indie"
+    search_queries:
+      - "українські хіти"
+      - "ukrainian pop hits"
+      - "ukraine pop music 2025"
+      - "кращі українські пісні"
+      - "modern ukrainian music"
+    seed_artists:
+      - "KAZKA"
+      - "Jerry Heil"
+      - "DOROFEEVA"
+      - "Tina Karol"
+      - "MÉLOVIN"
+      - "NK"
+      - "Монатик"
+      - "Время и Стекло"
     max_tracks: 50
 
   - name: "Folk"
@@ -42,10 +73,26 @@ playlists:
   - name: "Party"
     spotify_id: "4kn274GiOqPmh6pgwG1nPZ"
     description: "Upbeat Ukrainian bangers for weekends"
+    dedicated: true
     genres:
       - "ukrainian pop"
       - "ukrainian hip hop"
       - "ukrainian rock"
+    search_queries:
+      - "українська танцювальна музика"
+      - "ukrainian party music"
+      - "ukraine dance hits"
+      - "українські запальні пісні"
+      - "ukrainian upbeat songs"
+    seed_artists:
+      - "alyona alyona"
+      - "Kalush Orchestra"
+      - "Skofka"
+      - "Антитіла"
+      - "Go_A"
+      - "Okean Elzy"
+      - "KAZKA"
+      - "Jerry Heil"
     max_tracks: 50
 
   - name: "Waltz"
@@ -88,36 +135,3 @@ playlists:
       - "Bloom"
       - "Artbat"
     max_tracks: 50
-
-# Source playlists to pull tracks from (Spotify playlist IDs)
-source_playlists: []
-
-# Additional search queries beyond genre searches (searched in UA market)
-search_queries:
-  - "українська музика"
-  - "україна хіти 2025"
-  - "ukrainian music 2025"
-  - "ukraine hits"
-
-# Seed artists (searched by name via Spotify search API)
-seed_artists:
-  - "KAZKA"
-  - "Jerry Heil"
-  - "alyona alyona"
-  - "Kalush Orchestra"
-  - "MÉLOVIN"
-  - "Jamala"
-  - "ONUKA"
-  - "Okean Elzy"
-  - "Tina Karol"
-  - "DOROFEEVA"
-  - "Pianoboy"
-  - "Vivienne Mort"
-  - "Один в каное"
-  - "Skofka"
-  - "NK Nastya Kamenskykh"
-  - "Арсен Мірзоян"
-  - "Бумбокс"
-  - "Dakha Brakha"
-  - "Go_A"
-  - "Антитіла"
