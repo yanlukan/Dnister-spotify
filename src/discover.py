@@ -1,5 +1,5 @@
 # src/discover.py
-"""Entry point: discover Ukrainian songs and queue for review.
+"""Discover Ukrainian songs from external sources. No Spotify needed.
 
 Usage: python -m src.discover
 """
@@ -16,8 +16,6 @@ from src.scrapers.hitfm import scrape_hitfm
 from src.scrapers.lastfm import scrape_lastfm
 from src.scrapers.kworb import scrape_kworb
 from src.language.text_check import check_text_language
-from src.language.audio_check import check_audio_language
-from src.spotify_client import SpotifyClient
 from src.filter import TrackFilter
 
 logging.basicConfig(
@@ -30,7 +28,6 @@ logger = logging.getLogger(__name__)
 
 
 def deduplicate(songs: list[dict]) -> list[dict]:
-    """Deduplicate by (artist, name)."""
     seen = set()
     unique = []
     for song in songs:
@@ -64,62 +61,33 @@ def main():
     unique_songs = deduplicate(all_songs)
     logger.info(f"Total unique songs: {len(unique_songs)}")
 
-    # 3. Initialize Spotify + filter
-    sp = SpotifyClient()
+    # 3. Text language filter (no Spotify needed)
     track_filter = TrackFilter()
-
     new_for_review = 0
-    skipped = 0
     rejected_text = 0
-    rejected_audio = 0
-    not_on_spotify = 0
+    skipped = 0
 
-    import time
-    total = len(unique_songs)
-
-    for i, song in enumerate(unique_songs):
+    for song in unique_songs:
         name = song["name"]
         artist = song["artist"]
 
-        if (i + 1) % 10 == 0:
-            logger.info(f"Progress: {i + 1}/{total}")
-
-        # 4. Text language check (fast pre-filter)
+        # Text language check
         text = f"{name} {artist}"
         text_result = check_text_language(text)
         if text_result["language"] == "rus" and text_result["confidence"] > 0.8:
-            logger.info(f"Rejected (text=rus): {artist} — {name}")
+            logger.info(f"Rejected (Russian): {artist} — {name}")
             rejected_text += 1
             continue
 
-        # 5. Find on Spotify (with rate limit delay)
-        time.sleep(0.5)
-        track = sp.search_track(name, artist)
-        if not track:
-            not_on_spotify += 1
-            continue
+        # Use artist+name as ID (no Spotify ID yet)
+        song_id = f"{artist}||{name}".lower()
+        lang_info = f"{text_result['language']}({text_result['confidence']:.2f})"
 
-        # 6. Audio language check (skip if SKIP_AUDIO_CHECK is set — slow on first run)
-        audio_lang = "skipped"
-        audio_conf = 0.0
-        if not os.environ.get("SKIP_AUDIO_CHECK"):
-            preview_url = track.get("preview_url")
-            audio_result = check_audio_language(preview_url)
-            audio_lang = audio_result["language"]
-            audio_conf = audio_result["confidence"]
-
-            if audio_lang == "rus" and audio_conf > 0.7:
-                logger.info(f"Rejected (audio=rus): {artist} — {name}")
-                rejected_audio += 1
-                continue
-
-        # 7. Build track info and classify
-        lang_info = f"text={text_result['language']}({text_result['confidence']:.2f}) audio={audio_lang}({audio_conf:.2f})"
         track_info = {
-            "id": track["id"],
-            "name": track["name"],
-            "artist": ", ".join(a["name"] for a in track["artists"]),
-            "uri": track["uri"],
+            "id": song_id,
+            "name": name,
+            "artist": artist,
+            "uri": "",  # No Spotify URI yet — resolved at playlist update time
             "source": song["source"],
         }
 
@@ -131,10 +99,8 @@ def main():
 
     logger.info("=== Discovery complete ===")
     logger.info(f"New for review: {new_for_review}")
-    logger.info(f"Already known: {skipped}")
-    logger.info(f"Rejected (Russian text): {rejected_text}")
-    logger.info(f"Rejected (Russian audio): {rejected_audio}")
-    logger.info(f"Not on Spotify: {not_on_spotify}")
+    logger.info(f"Already in queue: {skipped}")
+    logger.info(f"Rejected (Russian): {rejected_text}")
 
 
 if __name__ == "__main__":
