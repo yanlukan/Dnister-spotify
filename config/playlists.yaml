@@ -39,9 +39,30 @@ playlists:
     max_tracks: 50
 
 # Source playlists to pull tracks from (Spotify playlist IDs)
-source_playlists:
-  - "37i9dQZEVXbKkidEfWYRuD"  # Top 50 Ukraine
-  # Add more editorial playlist IDs as discovered
+# Note: Spotify editorial playlists (Top 50 etc) may be inaccessible in dev mode
+source_playlists: []
+
+# Additional search queries beyond genre searches (searched in UA market)
+search_queries:
+  - "українська музика"
+  - "україна хіти 2025"
+  - "ukrainian music 2025"
+  - "ukraine hits"
 
 # Seed artists (Spotify artist IDs) — known Ukrainian artists
-seed_artists: []
+seed_artists:
+  - "7sfl4Xt5KmfyDs2T3SVSMK"  # KAZKA
+  - "0snMFGHSiNMI65ZuLuqP3Z"  # Jerry Heil
+  - "6dPCkJ6cFn0IKGaTHUqJqh"  # alyona alyona
+  - "5Q81rlcTFh3k6DQJXPdsot"  # Kalush Orchestra
+  - "3OsRAKCzk0zzPNdUzjMGqF"  # MÉLOVIN
+  - "4WzDnJPLNUayGhdznkuaix"  # Jamala
+  - "1pBLC0qVIN5KMQEG4FCq9F"  # ONUKA
+  - "2FLCITnsp7ROhHGiR2jqpR"  # Okean Elzy
+  - "1HlBdsmRvZIuzGejT2pRdi"  # Tina Karol
+  - "7vFQDWmaxJEPSrmXfBqDaA"  # DOROFEEVA
+  - "3JiAtXVLPcTBy0WY4980eS"  # Pianoboy
+  - "6msYMVOkuWiOKYyVJfLb4b"  # Vivienne Mort
+  - "3mHFdGCR4ksMDIuFBmDqpd"  # Один в каное
+  - "0L8ExT028jH3ddEcZwqJJ5"  # Skofka
+  - "5Pwc4xIPtQLFEnJriah9YJ"  # NK (Nastya Kamenskykh)

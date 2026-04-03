@@ -55,6 +55,7 @@ class PlaylistManager:
         collect_config = {
             "source_playlists": self.config.get("source_playlists", []),
             "genres": list(all_genres),
+            "search_queries": self.config.get("search_queries", []),
             "seed_artists": self.config.get("seed_artists", []),
         }
 
