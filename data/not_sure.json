@@ -1,4 +1,3 @@
 {
-  "_comment": "Tracks that need manual review. Move to whitelist.json or blacklist.json after reviewing.",
   "tracks": {}
 }

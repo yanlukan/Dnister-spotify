@@ -1,137 +1,15 @@
 playlists:
-  - name: "Daytime"
-    spotify_id: "2dtGpG8ColpwGLjAIh3h2y"
-    description: "Chill Ukrainian sounds for a relaxed lunch"
-    dedicated: true
-    genres:
-      - "ukrainian indie"
-      - "ukrainian acoustic"
-      - "ukrainian jazz"
-    search_queries:
-      - "українська спокійна музика"
-      - "ukrainian chill music"
-      - "ukrainian acoustic songs"
-      - "ukrainian lounge music"
-      - "легка українська музика"
-    seed_artists:
-      - "Pianoboy"
-      - "Vivienne Mort"
-      - "Один в каное"
-      - "Jamala"
-      - "Арсен Мірзоян"
-      - "SadSvit"
-      - "Бумбокс"
-    max_tracks: 50
+  daytime: "2dtGpG8ColpwGLjAIh3h2y"
+  evening: "2M199fyV4J4gT1MfusqJxJ"
+  folk: "5VcKxY0sYxapLRW1DSUvQr"
+  party: "4kn274GiOqPmh6pgwG1nPZ"
+  waltz: "5AsuhvTJGEZSNfLi89M3pF"
+  rave: "5MwjTAKFh33Qhx8t5JZ2h2"
 
-  - name: "Evening"
-    spotify_id: "2M199fyV4J4gT1MfusqJxJ"
-    description: "Modern Ukrainian hits for dinner"
-    dedicated: true
-    genres:
-      - "ukrainian pop"
-      - "ukrainian r&b"
-      - "ukrainian indie"
-    search_queries:
-      - "українські хіти"
-      - "ukrainian pop hits"
-      - "ukraine pop music 2025"
-      - "кращі українські пісні"
-      - "modern ukrainian music"
-    seed_artists:
-      - "KAZKA"
-      - "Jerry Heil"
-      - "DOROFEEVA"
-      - "Tina Karol"
-      - "MÉLOVIN"
-      - "NK"
-      - "Монатик"
-      - "Время и Стекло"
-    max_tracks: 50
-
-  - name: "Folk"
-    spotify_id: "5VcKxY0sYxapLRW1DSUvQr"
-    description: "Traditional Ukrainian folk & bandura classics"
-    dedicated: true
-    genres:
-      - "ukrainian folk"
-      - "ukrainian traditional"
-    search_queries:
-      - "українська народна музика"
-      - "ukrainian folk music"
-      - "бандура україна"
-      - "українські народні пісні"
-      - "ukrainian traditional songs"
-      - "козацькі пісні"
-    seed_artists:
-      - "Dakha Brakha"
-      - "Наталя Фаліон"
-      - "Тріо Маренич"
-      - "Ніна Матвієнко"
-      - "Марія Бурмака"
-    max_tracks: 50
-
-  - name: "Party"
-    spotify_id: "4kn274GiOqPmh6pgwG1nPZ"
-    description: "Upbeat Ukrainian bangers for weekends"
-    dedicated: true
-    genres:
-      - "ukrainian pop"
-      - "ukrainian hip hop"
-      - "ukrainian rock"
-    search_queries:
-      - "українська танцювальна музика"
-      - "ukrainian party music"
-      - "ukraine dance hits"
-      - "українські запальні пісні"
-      - "ukrainian upbeat songs"
-    seed_artists:
-      - "alyona alyona"
-      - "Kalush Orchestra"
-      - "Skofka"
-      - "Антитіла"
-      - "Go_A"
-      - "Okean Elzy"
-      - "KAZKA"
-      - "Jerry Heil"
-    max_tracks: 50
-
-  - name: "Waltz"
-    spotify_id: "5AsuhvTJGEZSNfLi89M3pF"
-    description: "Beautiful Ukrainian waltzes and 3/4 time signatures"
-    dedicated: true
-    genres:
-      - "ukrainian waltz"
-    search_queries:
-      - "український вальс"
-      - "ukrainian waltz"
-      - "вальс україна"
-      - "waltz ukraine"
-      - "українські вальси"
-    seed_artists:
-      - "Василь Зінкевич вальс"
-      - "Тарас Петриненко вальс"
-    max_tracks: 50
-
-  - name: "Rave"
-    spotify_id: "5MwjTAKFh33Qhx8t5JZ2h2"
-    description: "Ukrainian rave and electronic bangers"
-    dedicated: true
-    genres:
-      - "ukrainian electronic"
-      - "ukrainian edm"
-      - "ukrainian techno"
-    search_queries:
-      - "ukrainian rave"
-      - "ukrainian techno"
-      - "ukrainian electronic"
-      - "українська електронна музика"
-      - "ukraine rave party"
-      - "ukrainian dance music"
-    seed_artists:
-      - "ONUKA"
-      - "Go_A"
-      - "Zapaska"
-      - "Kurgan"
-      - "Bloom"
-      - "Artbat"
-    max_tracks: 50
+lastfm_tags:
+  - "ukrainian"
+  - "ukrainian pop"
+  - "ukrainian folk"
+  - "ukrainian rock"
+  - "ukrainian electronic"
+  - "ukrainian hip-hop"
