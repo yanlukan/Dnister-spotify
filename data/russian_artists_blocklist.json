@@ -1,0 +1,45 @@
+{
+  "artists": [
+    {
+      "name": "Филипп Киркоров",
+      "id": "0GnTcERehXfOi6kahqNJzq"
+    },
+    {
+      "name": "Егор Крид",
+      "id": "4F5Bh6TswDB0G5MjGLyGn0"
+    },
+    {
+      "name": "Баста",
+      "id": "1WaFQSHVGZQRlqMdMnrGMO"
+    },
+    {
+      "name": "Тимати",
+      "id": "2p4FRSqX3mYFGoJpmrmfaI"
+    },
+    {
+      "name": "Мот",
+      "id": "4Kp0OAUjBMbm8i85Lrc2Rb"
+    },
+    {
+      "name": "Miyagi",
+      "id": "4LZ4DcEMFJKPJqK3M0OLJQ"
+    },
+    {
+      "name": "Скриптонит",
+      "id": "1pBLC0qVIN5KMQEG4FCq9F"
+    },
+    {
+      "name": "Макс Корж",
+      "id": "5S3KPmEv3tJOjYMpEHTkHt"
+    },
+    {
+      "name": "Zivert",
+      "id": "4bCv4FxN1G0hNKMPPjdafT"
+    },
+    {
+      "name": "Мальбэк",
+      "id": "4G5jPSMI9EGBdQ5MYGkHGS"
+    }
+  ],
+  "_comment": "Add Spotify artist IDs of known Russian artists. This list should be expanded over time."
+}

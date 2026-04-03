@@ -1,0 +1,47 @@
+playlists:
+  - name: "Dnister Daytime"
+    description: "Chill Ukrainian sounds for a relaxed lunch"
+    genres:
+      - "ukrainian indie"
+      - "ukrainian acoustic"
+      - "ukrainian jazz"
+    energy_min: 0.0
+    energy_max: 0.4
+    max_tracks: 50
+
+  - name: "Dnister Evening"
+    description: "Modern Ukrainian hits for dinner"
+    genres:
+      - "ukrainian pop"
+      - "ukrainian r&b"
+      - "ukrainian indie"
+    energy_min: 0.4
+    energy_max: 0.65
+    max_tracks: 50
+
+  - name: "Dnister Folk"
+    description: "Traditional Ukrainian folk & bandura classics"
+    genres:
+      - "ukrainian folk"
+      - "ukrainian traditional"
+    energy_min: 0.2
+    energy_max: 0.55
+    max_tracks: 50
+
+  - name: "Dnister Party"
+    description: "Upbeat Ukrainian bangers for weekends"
+    genres:
+      - "ukrainian pop"
+      - "ukrainian hip hop"
+      - "ukrainian rock"
+    energy_min: 0.65
+    energy_max: 1.0
+    max_tracks: 50
+
+# Source playlists to pull tracks from (Spotify playlist IDs)
+source_playlists:
+  - "37i9dQZEVXbKkidEfWYRuD"  # Top 50 Ukraine
+  # Add more editorial playlist IDs as discovered
+
+# Seed artists (Spotify artist IDs) — known Ukrainian artists
+seed_artists: []
