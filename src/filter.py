@@ -12,47 +12,76 @@ logger = logging.getLogger(__name__)
 CYRILLIC_RE = re.compile(r"[\u0400-\u04FF]")
 
 
-class ContentFilter:
-    """Multi-layer filter: verified artists, Cyrillic check, blocklist, language, lyrics."""
+def _load_json(path: str) -> dict:
+    with open(path, "r", encoding="utf-8") as f:
+        return json.load(f)
 
-    def __init__(self, blocklist_path: str, verified_artists_path: str):
-        # Load Russian blocklist
-        with open(blocklist_path, "r", encoding="utf-8") as f:
-            data = json.load(f)
+
+def _save_json(path: str, data: dict) -> None:
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+
+
+class ContentFilter:
+    """Track filter with whitelist/blacklist/not-sure lists."""
+
+    def __init__(
+        self,
+        blocklist_path: str,
+        verified_artists_path: str,
+        whitelist_path: str = "data/whitelist.json",
+        blacklist_path: str = "data/blacklist.json",
+        not_sure_path: str = "data/not_sure.json",
+    ):
+        # Russian artist blocklist
+        data = _load_json(blocklist_path)
         self._blocked_ids: set[str] = {a["id"] for a in data["artists"]}
         self._blocked_names: set[str] = {a["name"].lower() for a in data["artists"]}
-        logger.info(f"Loaded {len(self._blocked_ids)} blocked artists")
 
-        # Load verified Ukrainian artists
-        with open(verified_artists_path, "r", encoding="utf-8") as f:
-            data = json.load(f)
+        # Verified Ukrainian artists
+        data = _load_json(verified_artists_path)
         self._verified_artists: set[str] = {name.lower() for name in data["artists"]}
-        logger.info(f"Loaded {len(self._verified_artists)} verified Ukrainian artists")
 
-        # Lyrics verifier (optional — needs GENIUS_ACCESS_TOKEN)
+        # Track lists (keyed by Spotify track ID)
+        self._whitelist_path = whitelist_path
+        self._blacklist_path = blacklist_path
+        self._not_sure_path = not_sure_path
+
+        self._whitelist = _load_json(whitelist_path)
+        self._blacklist = _load_json(blacklist_path)
+        self._not_sure = _load_json(not_sure_path)
+
+        self._whitelisted_ids: set[str] = set(self._whitelist["tracks"].keys())
+        self._blacklisted_ids: set[str] = set(self._blacklist["tracks"].keys())
+        self._not_sure_ids: set[str] = set(self._not_sure["tracks"].keys())
+
+        # Lyrics verifier
         self.lyrics_verifier = LyricsVerifier()
+
+        logger.info(
+            f"Loaded {len(self._whitelisted_ids)} whitelisted, "
+            f"{len(self._blacklisted_ids)} blacklisted, "
+            f"{len(self._not_sure_ids)} not-sure tracks"
+        )
 
     def _has_cyrillic(self, text: str) -> bool:
         return bool(CYRILLIC_RE.search(text))
 
     def _is_verified_artist(self, track: dict) -> bool:
-        """Check if any artist on the track is in the verified Ukrainian list."""
         for artist in track.get("artists", []):
             if artist.get("name", "").lower() in self._verified_artists:
                 return True
         return False
 
     def _is_blocked_artist(self, track: dict) -> tuple[bool, str]:
-        """Check if any artist is on the Russian blocklist."""
         for artist in track.get("artists", []):
             if artist["id"] in self._blocked_ids:
-                return True, f"Blocklist: artist '{artist['name']}'"
+                return True, f"Blocklist artist: '{artist['name']}'"
             if artist["name"].lower() in self._blocked_names:
-                return True, f"Blocklist: artist '{artist['name']}'"
+                return True, f"Blocklist artist: '{artist['name']}'"
         return False, ""
 
     def _has_ukrainian_connection(self, track: dict) -> bool:
-        """Check if track has Cyrillic in track/artist/album name."""
         for artist in track.get("artists", []):
             if self._has_cyrillic(artist.get("name", "")):
                 return True
@@ -63,7 +92,6 @@ class ContentFilter:
         return False
 
     def _check_name_language(self, track: dict) -> tuple[bool, str]:
-        """Run language detection on track and album names."""
         track_name = track.get("name", "")
         if self._has_cyrillic(track_name) and len(track_name) >= 3:
             try:
@@ -82,61 +110,103 @@ class ContentFilter:
 
         return True, ""
 
-    def is_allowed(self, track: dict) -> tuple[bool, str]:
-        """Full filter pipeline for a single track.
+    def _track_summary(self, track: dict) -> str:
+        """Human-readable summary for the review lists."""
+        artists = ", ".join(a["name"] for a in track.get("artists", []))
+        return f"{artists} — {track.get('name', '?')}"
 
-        Pipeline:
-        1. Blocked artist? → reject
-        2. Verified Ukrainian artist? → accept (skip further checks)
-        3. Has Cyrillic connection? → if no, reject
-        4. Track/album name language → if Russian, reject
-        5. Lyrics check (if available) → if Russian lyrics, reject
+    def _add_to_not_sure(self, track: dict, reason: str) -> None:
+        """Add a track to the not-sure list for manual review."""
+        track_id = track["id"]
+        if track_id not in self._not_sure_ids:
+            self._not_sure["tracks"][track_id] = {
+                "name": track.get("name", ""),
+                "artists": self._track_summary(track),
+                "uri": track.get("uri", ""),
+                "reason": reason,
+            }
+            self._not_sure_ids.add(track_id)
+
+    def classify(self, track: dict) -> tuple[str, str]:
+        """Classify a track as 'allow', 'reject', or 'not_sure'.
+
+        Returns (decision, reason).
         """
-        artist_names = ", ".join(a["name"] for a in track.get("artists", []))
-        track_name = track.get("name", "")
+        track_id = track.get("id", "")
 
-        # 1. Blocklist check first
+        # 1. Already manually reviewed?
+        if track_id in self._whitelisted_ids:
+            return "allow", "whitelisted"
+        if track_id in self._blacklisted_ids:
+            return "reject", "blacklisted"
+
+        # 2. Blocked Russian artist?
         blocked, reason = self._is_blocked_artist(track)
         if blocked:
-            return False, reason
+            return "reject", reason
 
-        # 2. Verified artist — trust them
+        # 3. Verified Ukrainian artist?
         if self._is_verified_artist(track):
-            return True, "verified_artist"
+            return "allow", "verified_artist"
 
-        # 3. Must have Cyrillic somewhere
+        # 4. No Cyrillic at all? → definitely not Ukrainian
         if not self._has_ukrainian_connection(track):
-            return False, f"Non-Ukrainian: '{track_name}' by {artist_names}"
+            artists = ", ".join(a["name"] for a in track.get("artists", []))
+            return "reject", f"Non-Ukrainian: '{track.get('name', '')}' by {artists}"
 
-        # 4. Check track/album name language
+        # 5. Track/album name detected as Russian?
         ok, reason = self._check_name_language(track)
         if not ok:
-            return False, f"Language: {reason}"
+            return "not_sure", f"Language: {reason}"
 
-        # 5. Lyrics verification (if Genius API available)
+        # 6. Lyrics check if available
         if self.lyrics_verifier.genius:
-            ok, reason = self.lyrics_verifier.check_track(track_name, artist_names)
+            artists = ", ".join(a["name"] for a in track.get("artists", []))
+            ok, reason = self.lyrics_verifier.check_track(track.get("name", ""), artists)
             if not ok:
-                return False, f"Lyrics: {reason}"
+                return "not_sure", f"Lyrics: {reason}"
 
-        return True, ""
+        # 7. Has Cyrillic but not verified — mark as not sure
+        if not self._is_verified_artist(track):
+            return "not_sure", "Unknown artist, needs review"
+
+        return "allow", ""
 
     def filter_tracks(self, tracks: list[dict]) -> tuple[list[dict], list[dict]]:
-        """Filter a list of tracks. Returns (allowed, excluded)."""
+        """Filter tracks. Returns (allowed, excluded).
+
+        Tracks classified as 'not_sure' are excluded but saved
+        to not_sure.json for manual review.
+        """
         allowed = []
         excluded = []
+        new_not_sure = 0
+
         for track in tracks:
-            is_ok, reason = self.is_allowed(track)
-            if is_ok:
+            decision, reason = self.classify(track)
+
+            if decision == "allow":
                 allowed.append(track)
-            else:
+            elif decision == "reject":
                 excluded.append({"track": track, "reason": reason})
-                logger.info(f"Excluded: {track['name']} — {reason}")
+                logger.info(f"Rejected: {self._track_summary(track)} — {reason}")
+            else:  # not_sure
+                excluded.append({"track": track, "reason": f"NOT SURE: {reason}"})
+                self._add_to_not_sure(track, reason)
+                new_not_sure += 1
+                logger.info(f"Not sure: {self._track_summary(track)} — {reason}")
+
+        # Save updated not-sure list
+        if new_not_sure > 0:
+            _save_json(self._not_sure_path, self._not_sure)
+            logger.info(f"Added {new_not_sure} tracks to not-sure list for review")
+
         logger.info(
-            f"Filter result: {len(allowed)} allowed, {len(excluded)} excluded"
+            f"Filter: {len(allowed)} allowed, {len(excluded)} excluded "
+            f"({new_not_sure} need review)"
         )
         return allowed, excluded
 
 
-# Keep backward-compatible alias
+# Backward-compatible alias
 RussianContentFilter = ContentFilter

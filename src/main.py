@@ -11,7 +11,12 @@ from src.playlist_builder import PlaylistBuilder
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+    force=True,
 )
+# Ensure output is flushed immediately
+import sys
+sys.stdout.reconfigure(line_buffering=True)
+sys.stderr.reconfigure(line_buffering=True)
 logger = logging.getLogger(__name__)
 
 
