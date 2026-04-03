@@ -27,7 +27,7 @@ class SpotifyClient:
         auth_manager = SpotifyOAuth(
             client_id=client_id,
             client_secret=client_secret,
-            redirect_uri="http://localhost:8888/callback",
+            redirect_uri="http://127.0.0.1:3000/callback",
             scope=self.SCOPES,
         )
         # Inject the refresh token directly

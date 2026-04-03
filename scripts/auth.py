@@ -3,9 +3,9 @@
 
 Usage:
   1. Create a Spotify app at https://developer.spotify.com/dashboard
-  2. Set redirect URI to http://localhost:8888/callback
+  2. Set redirect URI to http://127.0.0.1:3000/callback in the app settings
   3. Run: SPOTIFY_CLIENT_ID=xxx SPOTIFY_CLIENT_SECRET=yyy python scripts/auth.py
-  4. Follow the browser prompt to authorize
+  4. Open the URL printed in the terminal, authorize, and paste back the redirect URL
   5. Copy the refresh token to your GitHub repo secrets as SPOTIFY_REFRESH_TOKEN
 """
 import os
@@ -14,6 +14,7 @@ import sys
 import spotipy
 from spotipy.oauth2 import SpotifyOAuth
 
+REDIRECT_URI = "http://127.0.0.1:3000/callback"
 SCOPES = "playlist-modify-public playlist-modify-private"
 
 
@@ -33,18 +34,29 @@ def main():
     auth_manager = SpotifyOAuth(
         client_id=client_id,
         client_secret=client_secret,
-        redirect_uri="http://localhost:8888/callback",
+        redirect_uri=REDIRECT_URI,
         scope=SCOPES,
-        open_browser=True,
+        open_browser=False,
     )
 
-    # This triggers the OAuth flow — opens browser, waits for callback
-    sp = spotipy.Spotify(auth_manager=auth_manager)
-    user = sp.current_user()
-    print(f"\nAuthenticated as: {user['display_name']} ({user['id']})")
+    auth_url = auth_manager.get_authorize_url()
+    print(f"\n1. Open this URL in your browser:\n")
+    print(f"   {auth_url}\n")
+    print(f"2. Authorize the app")
+    print(f"3. You'll be redirected to a page that won't load (that's OK)")
+    print(f"4. Copy the FULL URL from your browser's address bar and paste it here:\n")
 
-    token_info = auth_manager.get_cached_token()
+    response_url = input("Paste URL here: ").strip()
+
+    code = auth_manager.parse_response_code(response_url)
+    token_info = auth_manager.get_access_token(code, as_dict=True)
+
     if token_info and "refresh_token" in token_info:
+        # Verify it works
+        sp = spotipy.Spotify(auth=token_info["access_token"])
+        user = sp.current_user()
+        print(f"\nAuthenticated as: {user['display_name']} ({user['id']})")
+
         print(f"\n{'=' * 60}")
         print("Your refresh token (add this to GitHub secrets):")
         print(f"{'=' * 60}")
