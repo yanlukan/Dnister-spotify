@@ -32,14 +32,22 @@ class PlaylistManager:
         self.builder = PlaylistBuilder(self.sp_client)
         self.user_id = self.sp_client.get_current_user_id()
 
-    def run(self) -> None:
-        """Execute the full pipeline: collect -> filter -> assign -> update."""
-        playlist_configs = self.config["playlists"]
+    def _collect_for_playlist(self, cfg: dict) -> list[dict]:
+        """Collect tracks for a single playlist using its own config."""
+        collect_config = {
+            "source_playlists": cfg.get("source_playlists", []),
+            "genres": cfg.get("genres", []),
+            "search_queries": cfg.get("search_queries", []),
+            "seed_artists": cfg.get("seed_artists", []),
+        }
+        return self.collector.collect_all(collect_config)
 
-        # 1. Collect all unique genres across playlists
+    def _collect_general(self, playlist_configs: list[dict]) -> list[dict]:
+        """Collect tracks from the global config sources."""
         all_genres = set()
         for cfg in playlist_configs:
-            all_genres.update(cfg["genres"])
+            if not cfg.get("dedicated"):
+                all_genres.update(cfg.get("genres", []))
 
         collect_config = {
             "source_playlists": self.config.get("source_playlists", []),
@@ -47,34 +55,63 @@ class PlaylistManager:
             "search_queries": self.config.get("search_queries", []),
             "seed_artists": self.config.get("seed_artists", []),
         }
+        return self.collector.collect_all(collect_config)
+
+    def run(self) -> None:
+        """Execute the full pipeline: collect -> filter -> assign -> update."""
+        playlist_configs = self.config["playlists"]
+        import random
 
         logger.info("=== Starting playlist update ===")
 
-        # 2. Collect tracks
-        all_tracks = self.collector.collect_all(collect_config)
-        logger.info(f"Collected {len(all_tracks)} unique tracks")
+        # Split playlists into dedicated (own sources) and general (shared pool)
+        dedicated = [cfg for cfg in playlist_configs if cfg.get("dedicated")]
+        general = [cfg for cfg in playlist_configs if not cfg.get("dedicated")]
 
-        # 3. Filter Russian content
-        allowed_tracks, excluded = self.content_filter.filter_tracks(all_tracks)
-        logger.info(
-            f"After filtering: {len(allowed_tracks)} allowed, {len(excluded)} excluded"
-        )
-
-        # 4. Assign tracks to playlists
-        assignments = self.builder.assign_tracks(allowed_tracks, playlist_configs)
-
-        # 5. Update each playlist on Spotify using hardcoded spotify_id
-        for cfg in playlist_configs:
+        # Handle dedicated playlists — each gets its own collection
+        for cfg in dedicated:
             name = cfg["name"]
             playlist_id = cfg["spotify_id"]
-            tracks = assignments.get(name, [])
-            track_uris = [t["uri"] for t in tracks]
+            max_tracks = cfg.get("max_tracks", 50)
+
+            logger.info(f"--- Collecting for dedicated playlist '{name}' ---")
+            tracks = self._collect_for_playlist(cfg)
+            allowed, excluded = self.content_filter.filter_tracks(tracks)
+            logger.info(f"'{name}': {len(allowed)} allowed, {len(excluded)} excluded")
+
+            random.shuffle(allowed)
+            track_uris = [t["uri"] for t in allowed[:max_tracks]]
 
             if track_uris:
                 self.sp_client.replace_playlist_tracks(playlist_id, track_uris)
                 logger.info(f"Updated '{name}' with {len(track_uris)} tracks")
             else:
-                logger.warning(f"No tracks assigned to '{name}' -- skipping update")
+                logger.warning(f"No tracks for '{name}' -- skipping update")
+
+        # Handle general playlists — shared pool, distributed
+        if general:
+            logger.info("--- Collecting for general playlists ---")
+            all_tracks = self._collect_general(playlist_configs)
+            logger.info(f"Collected {len(all_tracks)} unique tracks")
+
+            allowed_tracks, excluded = self.content_filter.filter_tracks(all_tracks)
+            logger.info(
+                f"After filtering: {len(allowed_tracks)} allowed, {len(excluded)} excluded"
+            )
+
+            assignments = self.builder.assign_tracks(allowed_tracks, general)
+
+            for cfg in general:
+                name = cfg["name"]
+                playlist_id = cfg["spotify_id"]
+                tracks = assignments.get(name, [])
+                track_uris = [t["uri"] for t in tracks]
+
+                if track_uris:
+                    self.sp_client.replace_playlist_tracks(playlist_id, track_uris)
+                    logger.info(f"Updated '{name}' with {len(track_uris)} tracks")
+                else:
+                    logger.warning(f"No tracks assigned to '{name}' -- skipping update")
 
         logger.info("=== Playlist update complete ===")
 
